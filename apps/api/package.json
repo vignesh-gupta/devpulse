@@ -1,0 +1,22 @@
+{
+  "name": "api",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@devpulse/db": "workspace:*",
+    "@hono/node-server": "^1.15.0",
+    "better-auth": "^1.2.12",
+    "hono": "^4.8.4",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@devpulse/eslint-config": "workspace:*",
+    "@devpulse/typescript-config": "workspace:*",
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

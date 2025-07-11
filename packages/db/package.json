@@ -1,0 +1,27 @@
+{
+  "name": "@devpulse/db",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "db:check": "drizzle-kit check",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  },
+  "exports": {
+    ".": "./src/database.ts",
+    "./schema": "./src/schema/index.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
+    "dotenv": "^17.2.0",
+    "drizzle-orm": "^0.44.2"
+  },
+  "devDependencies": {
+    "@devpulse/eslint-config": "workspace:*",
+    "@devpulse/typescript-config": "workspace:*",
+    "@types/node": "^20.11.17",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.8.3"
+  }
+}
