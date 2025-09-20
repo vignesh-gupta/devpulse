@@ -15,7 +15,8 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
     "dotenv": "^17.2.0",
-    "drizzle-orm": "^0.44.2"
+    "drizzle-orm": "^0.44.2",
+    "nanoid": "^5.1.5"
   },
   "devDependencies": {
     "@devpulse/eslint-config": "workspace:*",
