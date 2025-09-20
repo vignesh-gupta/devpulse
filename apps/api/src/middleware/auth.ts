@@ -16,14 +16,6 @@ type Session = {
   expiresAt: Date;
 };
 
-// Extend Hono's Variables interface
-declare module "hono" {
-  interface ContextVariableMap {
-    user: User | null;
-    session: Session | null;
-  }
-}
-
 export async function authMiddleware(c: Context, next: Next) {
   try {
     // Try to get session from Better-Auth

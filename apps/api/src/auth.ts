@@ -17,9 +17,13 @@ export const auth = betterAuth({
       scope: ["user:email", "read:user", "repo", "read:org"],
     },
   },
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:8000",
   secret: process.env.BETTER_AUTH_SECRET!,
   trustedOrigins: [
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ],
 });
+
+export type AuthType = {
+  user: typeof auth.$Infer.Session.user | null
+  session: typeof auth.$Infer.Session.session | null
+}

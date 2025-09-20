@@ -1,27 +1,18 @@
-import { LoginForm } from "../../components/auth/login-form";
+import { AuthForm } from "@/components/auth/auth-form";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <h1 className="text-4xl font-bold text-center text-gray-900 mb-2">
-          DevPulse
-        </h1>
-        <p className="text-center text-gray-600">
-          Your AI-powered daily standup assistant
-        </p>
-        <LoginForm />
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
-            Don&apos;t have an account?{" "}
-            <a
-              href="/signup"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              Sign up here
-            </a>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            DevPulse
+          </h1>
+          <p className="text-gray-600">
+            Your AI-powered daily standup assistant
           </p>
         </div>
+        <AuthForm />
       </div>
     </div>
   );

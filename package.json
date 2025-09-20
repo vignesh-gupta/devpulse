@@ -20,6 +20,7 @@
     "@devpulse/eslint-config": "workspace:*",
     "@devpulse/typescript-config": "workspace:*",
     "prettier": "^3.6.2",
+    "shadcn": "^3.3.1",
     "turbo": "^2.5.5",
     "typescript": "5.7.3"
   },
