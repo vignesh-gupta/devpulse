@@ -1,0 +1,30 @@
+{
+  "name": "shadcn-ui-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "webhook": "ngrok http --url=deep-ready-foal.ngrok-free.app 3000",
+    "api": "pnpm --filter api",
+    "web": "pnpm --filter web",
+    "db:push": "pnpm --filter db db:push",
+    "db:studio": "pnpm --filter db db:studio",
+    "gen": "turbo gen workspace",
+    "sync:list-mis": "syncpack list-mismatches"
+  },
+  "devDependencies": {
+    "@devpulse/eslint-config": "workspace:*",
+    "@devpulse/typescript-config": "workspace:*",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.5",
+    "typescript": "5.7.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  }
+}

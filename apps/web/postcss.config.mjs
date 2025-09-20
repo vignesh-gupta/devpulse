@@ -1,0 +1,1 @@
+export { default } from "@devpulse/ui/postcss.config";
