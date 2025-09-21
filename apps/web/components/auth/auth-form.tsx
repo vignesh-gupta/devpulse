@@ -63,6 +63,10 @@ export function AuthForm({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("signin");
 
+  const callbackURL = process.env.NEXT_PUBLIC_APP_URL + redirectTo;
+
+  console.log({ callbackURL });
+
   const signInForm = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -89,7 +93,7 @@ export function AuthForm({
       const result = await authClient.signIn.email({
         email: data.email,
         password: data.password,
-        callbackURL: redirectTo,
+        callbackURL,
       });
 
       if (result.error) {
@@ -113,7 +117,7 @@ export function AuthForm({
         email: data.email,
         password: data.password,
         name: data.name,
-        callbackURL: redirectTo,
+        callbackURL,
       });
 
       if (result.error) {
@@ -135,7 +139,7 @@ export function AuthForm({
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: redirectTo,
+        callbackURL,
       });
     } catch {
       setError("GitHub login failed");
