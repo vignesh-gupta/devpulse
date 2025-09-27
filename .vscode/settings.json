@@ -2,6 +2,8 @@
   "tailwindCSS.experimental.configFile": "packages/ui/src/styles/globals.css",
   "cSpell.words": [
     "devpulse",
-    "shadcnblocks"
+    "shadcnblocks",
+    "Waitlist",
+    "WCAG"
   ]
 }

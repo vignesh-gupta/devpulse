@@ -116,7 +116,7 @@ Use **cron jobs via Vercel Scheduled Functions** or **Upstash/Convex/Trigger.dev
 - Set up Stripe billing via **LemonSqueezy** or **Stripe + Stripe Billing**
 - Add basic pricing plans:
   - Free: 1 GitHub repo, manual trigger only
-  - Pro: Multiple repos, Slack/email export, autoschedule
+  - Pro: Multiple repos, Slack/email export, auto-schedule
 
 ---
 

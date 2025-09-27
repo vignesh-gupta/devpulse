@@ -1,10 +1,26 @@
 "use client";
 
+import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
+import { redirect, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, status, isPending } = useSession();
+  const router = useRouter();
+
+  // Check if onboarding is complete
+  useEffect(() => {
+    if (status === "authenticated" && !isPending) {
+      const onboardingComplete = localStorage.getItem(
+        "devpulse-onboarding-complete"
+      );
+      if (!onboardingComplete) {
+        router.push("/onboarding");
+      }
+    }
+  }, [status, isPending, router]);
 
   if (isPending) {
     return (
@@ -17,25 +33,8 @@ export default function DashboardPage() {
     );
   }
 
-  if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Access Denied
-          </h1>
-          <p className="text-gray-600 mb-4">
-            Please sign in to access your dashboard.
-          </p>
-          <a
-            href="/login"
-            className="text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Sign In
-          </a>
-        </div>
-      </div>
-    );
+  if (!session || !session.user || status === "unauthenticated") {
+    redirect("/login");
   }
 
   const avatarSrc =
@@ -109,7 +108,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-gray-500">
-                  Connect your GitHub repositories to automatically track your development activity
+                  Connect your GitHub repositories to automatically track your
+                  development activity
                 </p>
               </div>
             </a>
