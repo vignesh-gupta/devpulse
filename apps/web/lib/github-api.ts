@@ -73,8 +73,9 @@ export interface ConnectRepositoryRequest {
   repo: string;
 }
 
-export interface SyncRequest {
-  date?: string; // ISO date string, defaults to today
+export interface FetchActivityRequest {
+  startDate: string; // ISO date string
+  endDate: string;   // ISO date string
 }
 
 class GitHubApiClient {
@@ -185,22 +186,57 @@ class GitHubApiClient {
     await this.api.post(`/api/github/repositories/${repositoryId}/disconnect`);
   }
 
-  // Sync GitHub data for a specific date
-  async syncData(date?: string): Promise<GitHubActivity> {
-    const response = await this.api.post('/api/github/sync', { date });
+  // Fetch GitHub activity data for a date range (used for AI summary generation)
+  async fetchActivity(startDate: string, endDate: string): Promise<{
+    activity: {
+      commits: GitHubCommit[];
+      pullRequests: GitHubPullRequest[];
+      issues: GitHubIssue[];
+      stats: {
+        totalCommits: number;
+        totalPullRequests: number;
+        totalIssues: number;
+      };
+    };
+    fetchedAt: string;
+  }> {
+    const response = await this.api.post('/api/github/fetch-activity', { 
+      startDate, 
+      endDate 
+    });
     return response.data;
   }
 
-  // Get activity for a specific date
-  async getActivity(date: string): Promise<GitHubActivity> {
+  // Get activity for a specific date (on-demand fetch)
+  async getActivity(date: string): Promise<{
+    date: string;
+    commits: GitHubCommit[];
+    pullRequests: GitHubPullRequest[];
+    issues: GitHubIssue[];
+    stats: {
+      totalCommits: number;
+      totalPullRequests: number;
+      totalIssues: number;
+    };
+  }> {
     const response = await this.api.get(`/api/github/activity/${date}`);
-    return response.data;
+    return response.data.activity;
   }
 
-  // Get recent activities with pagination
-  async getRecentActivities(limit: number = 7): Promise<GitHubActivity[]> {
-    const response = await this.api.get(`/api/github/activities?limit=${limit}`);
-    return response.data;
+  // Get recent activities (last N days)
+  async getRecentActivities(days: number = 7): Promise<Array<{
+    date: string;
+    commits: GitHubCommit[];
+    pullRequests: GitHubPullRequest[];
+    issues: GitHubIssue[];
+    stats: {
+      totalCommits: number;
+      totalPullRequests: number;
+      totalIssues: number;
+    };
+  }>> {
+    const response = await this.api.get(`/api/github/activities?days=${days}`);
+    return response.data.activities;
   }
 
   // Validate GitHub token
@@ -312,34 +348,38 @@ export function useGitHubRepositories() {
 export function useGitHubActivity() {
   const { showError, showSuccess } = useErrorHandler();
   
-  const syncData = async (date?: string) => {
+  const fetchActivityData = async (startDate: string, endDate: string) => {
     try {
-      const result = await githubApi.syncData(date);
-      showSuccess('GitHub data synced successfully');
+      const result = await githubApi.fetchActivity(startDate, endDate);
+      showSuccess('GitHub activity fetched successfully');
       return result;
     } catch (error) {
-      showError(error instanceof Error ? error : new Error('Failed to sync GitHub data'));
+      showError(error instanceof Error ? error : new Error('Failed to fetch GitHub activity'));
       throw error;
     }
   };
 
-  const fetchActivity = async (date: string) => {
+  const fetchDailyActivity = async (date: string) => {
     try {
       return await githubApi.getActivity(date);
     } catch (error) {
-      showError(error instanceof Error ? error : new Error('Failed to fetch activity'));
+      showError(error instanceof Error ? error : new Error('Failed to fetch daily activity'));
       throw error;
     }
   };
 
-  const fetchRecentActivities = async (limit: number = 7) => {
+  const fetchRecentActivities = async (days: number = 7) => {
     try {
-      return await githubApi.getRecentActivities(limit);
+      return await githubApi.getRecentActivities(days);
     } catch (error) {
       showError(error instanceof Error ? error : new Error('Failed to fetch recent activities'));
       throw error;
     }
   };
 
-  return { syncData, fetchActivity, fetchRecentActivities };
+  return { 
+    fetchActivityData,      // For AI summary generation 
+    fetchDailyActivity,     // For single day activity
+    fetchRecentActivities   // For activity timeline
+  };
 }

@@ -230,14 +230,18 @@ export const githubValidators = {
   },
 
   /**
-   * Validate sync request body
+   * Validate fetch activity request body
    */
-  syncBody: (body: any) => {
+  fetchActivityBody: (body: any) => {
     return (
       body &&
-      body.date &&
-      typeof body.date === 'string' &&
-      !isNaN(Date.parse(body.date))
+      body.startDate &&
+      body.endDate &&
+      typeof body.startDate === 'string' &&
+      typeof body.endDate === 'string' &&
+      !isNaN(Date.parse(body.startDate)) &&
+      !isNaN(Date.parse(body.endDate)) &&
+      new Date(body.startDate) <= new Date(body.endDate)
     );
   },
 
@@ -257,9 +261,9 @@ export const githubValidators = {
    * Validate activities query parameters
    */
   activitiesQuery: (query: any) => {
-    if (!query.limit) return true; // limit is optional
+    if (!query.days) return true; // days is optional
     
-    const limit = parseInt(query.limit, 10);
-    return !isNaN(limit) && limit >= 1 && limit <= 100;
+    const days = parseInt(query.days, 10);
+    return !isNaN(days) && days >= 1 && days <= 30;
   },
 };

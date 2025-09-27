@@ -130,10 +130,10 @@ export async function disconnectRepository(
 }
 
 /**
- * Sync user's GitHub data
- * POST /api/github/sync
+ * Fetch GitHub activity data for a date range (used for AI summary generation)
+ * POST /api/github/fetch-activity
  */
-export async function syncData(c: Context<{ Variables: AuthType }>) {
+export async function fetchActivity(c: Context<{ Variables: AuthType }>) {
   try {
     const user = c.get("user");
 
@@ -142,20 +142,24 @@ export async function syncData(c: Context<{ Variables: AuthType }>) {
     }
 
     const body = await c.req.json();
-    const { date } = body;
+    const { startDate, endDate } = body;
 
-    if (!date) {
-      return c.json({ error: "Date is required" }, 400);
+    if (!startDate || !endDate) {
+      return c.json({ error: "Start date and end date are required" }, 400);
     }
 
-    const result = await services.syncUserData({
-      userId: user.id,
-      date,
+    const activity = await services.fetchGitHubActivity(user.id, {
+      startDate,
+      endDate
     });
 
-    return c.json(result);
+    return c.json({
+      message: "GitHub activity fetched successfully",
+      activity,
+      fetchedAt: new Date().toISOString()
+    });
   } catch (error) {
-    console.error("Error syncing GitHub data:", error);
+    console.error("Error fetching GitHub activity:", error);
 
     if (error instanceof Error) {
       if (error.message === "GitHub not connected") {
@@ -166,7 +170,7 @@ export async function syncData(c: Context<{ Variables: AuthType }>) {
       }
     }
 
-    return c.json({ error: "Failed to sync GitHub data" }, 500);
+    return c.json({ error: "Failed to fetch GitHub activity" }, 500);
   }
 }
 
@@ -204,8 +208,8 @@ export async function getDailyActivity(c: Context<{ Variables: AuthType }>) {
 }
 
 /**
- * Get recent activities
- * GET /api/github/activities?limit=30
+ * Get recent activities (last 7 days by default)
+ * GET /api/github/activities?days=7
  */
 export async function getRecentActivities(c: Context<{ Variables: AuthType }>) {
   try {
@@ -215,16 +219,19 @@ export async function getRecentActivities(c: Context<{ Variables: AuthType }>) {
       return c.json({ error: "User not found" }, 400);
     }
 
-    const limitParam = c.req.query("limit");
-    const limit = limitParam ? parseInt(limitParam, 10) : 30;
+    const daysParam = c.req.query("days");
+    const days = daysParam ? parseInt(daysParam, 10) : 7;
 
-    if (isNaN(limit) || limit < 1 || limit > 100) {
-      return c.json({ error: "Limit must be a number between 1 and 100" }, 400);
+    if (isNaN(days) || days < 1 || days > 30) {
+      return c.json({ error: "Days must be a number between 1 and 30" }, 400);
     }
 
-    const activities = await services.getRecentActivities(user.id, limit);
+    const activities = await services.getRecentActivities(user.id, days);
 
-    return c.json({ activities });
+    return c.json({ 
+      activities,
+      fetchedAt: new Date().toISOString()
+    });
   } catch (error) {
     console.error("Error fetching recent activities:", error);
     return c.json({ error: "Failed to fetch recent activities" }, 500);
@@ -379,7 +386,7 @@ export default {
   getRepositories,
   connectRepository,
   disconnectRepository,
-  syncData,
+  fetchActivity,
   getDailyActivity,
   getRecentActivities,
   validateToken,

@@ -31,44 +31,6 @@ export const githubTokens = pgTable("github_tokens", {
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
 });
 
-export const dailyActivities = pgTable("daily_activities", {
-  id: text('id').primaryKey().$defaultFn(() => createId.activity()),
-  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  date: timestamp('date').notNull(),
-  commits: jsonb('commits').$type<{
-    sha: string;
-    message: string;
-    url: string;
-    repository: string;
-    additions: number;
-    deletions: number;
-    timestamp: string;
-  }[]>().default([]),
-  pullRequests: jsonb('pull_requests').$type<{
-    id: number;
-    title: string;
-    url: string;
-    repository: string;
-    state: 'open' | 'closed' | 'merged';
-    action: 'opened' | 'closed' | 'merged' | 'reviewed';
-    timestamp: string;
-  }[]>().default([]),
-  issues: jsonb('issues').$type<{
-    id: number;
-    title: string;
-    url: string;
-    repository: string;
-    state: 'open' | 'closed';
-    action: 'opened' | 'closed' | 'commented';
-    timestamp: string;
-  }[]>().default([]),
-  totalCommits: integer('total_commits').default(0),
-  totalPullRequests: integer('total_pull_requests').default(0),
-  totalIssues: integer('total_issues').default(0),
-  createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
-});
-
 export const summaries = pgTable("summaries", {
   id: text('id').primaryKey().$defaultFn(() => createId.summary()),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
@@ -80,7 +42,36 @@ export const summaries = pgTable("summaries", {
   aiGenerated: boolean('ai_generated').notNull().default(true),
   edited: boolean('edited').notNull().default(false),
   approved: boolean('approved').notNull().default(false),
-  activityId: text('activity_id').references(() => dailyActivities.id, { onDelete: 'set null' }),
+  // Store activity data used for generation (for reference, not persistent storage)
+  sourceData: jsonb('source_data').$type<{
+    commits: {
+      sha: string;
+      message: string;
+      url: string;
+      repository: string;
+      additions: number;
+      deletions: number;
+      timestamp: string;
+    }[];
+    pullRequests: {
+      id: number;
+      title: string;
+      url: string;
+      repository: string;
+      state: 'open' | 'closed' | 'merged';
+      action: 'opened' | 'closed' | 'merged' | 'reviewed';
+      timestamp: string;
+    }[];
+    issues: {
+      id: number;
+      title: string;
+      url: string;
+      repository: string;
+      state: 'open' | 'closed';
+      action: 'opened' | 'closed' | 'commented';
+      timestamp: string;
+    }[];
+  }>(),
   metadata: jsonb('metadata').$type<{
     totalCommits: number;
     totalPullRequests: number;
@@ -88,6 +79,7 @@ export const summaries = pgTable("summaries", {
     repositories: string[];
     aiModel: string;
     generatedAt: string;
+    fetchedAt: string; // When the data was fetched from GitHub
   }>(),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).notNull(),
@@ -99,9 +91,6 @@ export type NewRepository = typeof repositories.$inferInsert;
 
 export type GithubToken = typeof githubTokens.$inferSelect;
 export type NewGithubToken = typeof githubTokens.$inferInsert;
-
-export type DailyActivity = typeof dailyActivities.$inferSelect;
-export type NewDailyActivity = typeof dailyActivities.$inferInsert;
 
 export type Summary = typeof summaries.$inferSelect;
 export type NewSummary = typeof summaries.$inferInsert;

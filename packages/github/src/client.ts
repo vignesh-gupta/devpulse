@@ -403,68 +403,6 @@ export class GitHubClient {
   }
 
   /**
-   * Create a webhook for a repository
-   */
-  async createWebhook(
-    owner: string,
-    repo: string,
-    config: {
-      url: string;
-      content_type: string;
-      secret: string;
-      insecure_ssl: string;
-    },
-    events: string[]
-  ): Promise<any> {
-    try {
-      const response = await this.octokit.repos.createWebhook({
-        owner,
-        repo,
-        config,
-        events,
-        active: true
-      });
-
-      return response;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * List webhooks for a repository
-   */
-  async listWebhooks(owner: string, repo: string): Promise<any> {
-    try {
-      const response = await this.octokit.repos.listWebhooks({
-        owner,
-        repo
-      });
-
-      return response;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
-   * Delete a webhook
-   */
-  async deleteWebhook(owner: string, repo: string, hookId: number): Promise<any> {
-    try {
-      const response = await this.octokit.repos.deleteWebhook({
-        owner,
-        repo,
-        hook_id: hookId
-      });
-
-      return response;
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  /**
    * Handle API errors
    */
   private handleError(error: any): Error {

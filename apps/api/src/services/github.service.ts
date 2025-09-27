@@ -7,7 +7,6 @@ import type {
 import type {
   GithubToken,
   Repository,
-  DailyActivity,
 } from "@devpulse/db/schema";
 
 export interface GitHubConnectionStatus {
@@ -39,7 +38,7 @@ export interface SyncOptions {
 
 export interface ActivityStats {
   totalCommits: number;
-  totalPRs: number;
+  totalPullRequests: number;
   totalIssues: number;
 }
 
@@ -163,16 +162,47 @@ export async function disconnectRepository(
 }
 
 /**
- * Sync user's GitHub data for a specific date
+ * Fetch fresh GitHub activity data for a specific date range
+ * This is used for AI summary generation
  */
-export async function syncUserData(options: SyncOptions): Promise<{
-  message: string;
-  activity: {
-    date: string;
-    stats: ActivityStats;
+export async function fetchGitHubActivity(
+  userId: string,
+  dateRange: { startDate: string; endDate: string }
+): Promise<{
+  commits: Array<{
+    sha: string;
+    message: string;
+    url: string;
+    repository: string;
+    additions: number;
+    deletions: number;
+    timestamp: string;
+  }>;
+  pullRequests: Array<{
+    id: number;
+    title: string;
+    url: string;
+    repository: string;
+    state: 'open' | 'closed' | 'merged';
+    action: 'opened' | 'closed' | 'merged' | 'reviewed';
+    timestamp: string;
+  }>;
+  issues: Array<{
+    id: number;
+    title: string;
+    url: string;
+    repository: string;
+    state: 'open' | 'closed';
+    action: 'opened' | 'closed' | 'commented';
+    timestamp: string;
+  }>;
+  stats: {
+    totalCommits: number;
+    totalPullRequests: number;
+    totalIssues: number;
   };
 }> {
-  const { userId, date } = options;
+  const { startDate, endDate } = dateRange;
 
   const token = await githubRepository.findTokenByUserId(userId);
   if (!token) {
@@ -191,10 +221,9 @@ export async function syncUserData(options: SyncOptions): Promise<{
     accessToken: token.accessToken,
   });
 
-  // Get activity for the specified date
-  const since = new Date(date);
-  const until = new Date(since);
-  until.setDate(until.getDate() + 1);
+  // Get activity for the specified date range
+  const since = new Date(startDate);
+  const until = new Date(endDate);
 
   const activity = await githubClient.getDeveloperActivity(
     connectedRepos.map((repo) => repo.fullName),
@@ -205,104 +234,125 @@ export async function syncUserData(options: SyncOptions): Promise<{
     }
   );
 
-  // Process and normalize activity data
-  const processedActivity = processActivityData(activity);
-
-  // Check if activity already exists for this date
-  const existingActivity = await githubRepository.findActivityByUserAndDate(
-    userId,
-    since
-  );
-
-  if (existingActivity) {
-    // Update existing activity
-    await githubRepository.updateActivity(existingActivity.id, {
-      ...processedActivity,
-    });
-  } else {
-    // Create new activity record
-    const activityData: CreateActivityData = {
-      userId,
-      date: since,
-      ...processedActivity,
-    };
-
-    await githubRepository.createActivity(activityData);
-  }
-
-  return {
-    message: "GitHub data synced successfully",
-    activity: {
-      date,
-      stats: activity.stats,
-    },
-  };
+  // Process and normalize activity data for consistent format
+  return processActivityData(activity, connectedRepos);
 }
 
 /**
- * Get daily activity for a user and date
+ * Get daily activity data for a specific date (on-demand fetch)
  */
 export async function getDailyActivity(
   userId: string,
   date: string
-): Promise<DailyActivity> {
-  const activity = await githubRepository.findActivityByUserAndDate(
-    userId,
-    new Date(date)
-  );
+): Promise<{
+  date: string;
+  commits: any[];
+  pullRequests: any[];
+  issues: any[];
+  stats: ActivityStats;
+}> {
+  const startDate = date;
+  const endDate = new Date(date);
+  endDate.setDate(endDate.getDate() + 1);
+  
+  const activity = await fetchGitHubActivity(userId, {
+    startDate,
+    endDate: endDate.toISOString().split('T')[0]
+  });
 
-  if (!activity) {
-    throw new Error("No activity found for this date");
-  }
-
-  return activity;
+  return {
+    date,
+    commits: activity.commits,
+    pullRequests: activity.pullRequests,
+    issues: activity.issues,
+    stats: activity.stats,
+  };
 }
 
 /**
- * Get recent activities for a user
+ * Get recent activities for a user (last 7 days by default)
  */
 export async function getRecentActivities(
   userId: string,
-  limit: number = 30
-): Promise<DailyActivity[]> {
-  return await githubRepository.findActivitiesByUserId(userId, limit);
+  days: number = 7
+): Promise<Array<{
+  date: string;
+  commits: any[];
+  pullRequests: any[];
+  issues: any[];
+  stats: ActivityStats;
+}>> {
+  const results = [];
+  const today = new Date();
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    try {
+      const activity = await getDailyActivity(userId, dateString);
+      results.push(activity);
+    } catch (error) {
+      // If no activity for a day, continue with next day
+      results.push({
+        date: dateString,
+        commits: [],
+        pullRequests: [],
+        issues: [],
+        stats: { totalCommits: 0, totalPullRequests: 0, totalIssues: 0 }
+      });
+    }
+  }
+  
+  return results;
 }
 
 /**
  * Process raw GitHub activity data into our format
  */
-function processActivityData(activity: any) {
+function processActivityData(activity: any, repositories: Repository[]) {
+  const repoMap = new Map(repositories.map(repo => [repo.fullName, repo.name]));
+  
+  const commits = activity.commits?.map((commit: any) => ({
+    sha: commit.sha,
+    message: commit.commit.message,
+    url: commit.html_url,
+    repository: repoMap.get(commit.repository?.full_name) || commit.repository?.name || "unknown",
+    additions: commit.stats?.additions || 0,
+    deletions: commit.stats?.deletions || 0,
+    timestamp: commit.commit.author.date,
+  })) || [];
+  
+  const pullRequests = activity.pullRequests?.map((pr: any) => ({
+    id: pr.id,
+    title: pr.title,
+    url: pr.html_url,
+    repository: repoMap.get(pr.base?.repo?.full_name) || pr.base?.repo?.name || "unknown",
+    state: pr.state,
+    action: pr.merged ? 'merged' : pr.state,
+    timestamp: pr.updated_at,
+  })) || [];
+  
+  const issues = activity.issues?.map((issue: any) => ({
+    id: issue.id,
+    title: issue.title,
+    url: issue.html_url,
+    repository: repoMap.get(issue.repository?.full_name) || issue.repository?.name || "unknown",
+    state: issue.state,
+    action: issue.state,
+    timestamp: issue.updated_at,
+  })) || [];
+  
   return {
-    commits: activity.commits.map((commit: any) => ({
-      sha: commit.sha,
-      message: commit.commit.message,
-      url: commit.html_url,
-      repository: "unknown", // Repository context would need to be determined from the API call
-      additions: commit.stats?.additions || 0,
-      deletions: commit.stats?.deletions || 0,
-      timestamp: commit.commit.author.date,
-    })),
-    pullRequests: activity.pullRequests.map((pr: any) => ({
-      id: pr.id,
-      title: pr.title,
-      url: pr.html_url,
-      repository: "unknown", // Repository context would need to be determined from the API call
-      state: pr.state,
-      action: "opened" as const,
-      timestamp: pr.created_at,
-    })),
-    issues: activity.issues.map((issue: any) => ({
-      id: issue.id,
-      title: issue.title,
-      url: issue.html_url,
-      repository: "unknown", // Repository context would need to be determined from the API call
-      state: issue.state,
-      action: "opened" as const,
-      timestamp: issue.created_at,
-    })),
-    totalCommits: activity.stats.totalCommits,
-    totalPullRequests: activity.stats.totalPRs,
-    totalIssues: activity.stats.totalIssues,
+    commits,
+    pullRequests,
+    issues,
+    stats: {
+      totalCommits: commits.length,
+      totalPullRequests: pullRequests.length,
+      totalIssues: issues.length,
+    },
   };
 }
 
@@ -393,20 +443,12 @@ export async function getGitHubToken(userId: string): Promise<GithubToken | null
   return await githubRepository.findTokenByUserId(userId);
 }
 
-/**
- * Sync data for a specific repository
- */
-export async function syncRepositoryData(userId: string, repoFullName: string): Promise<void> {
-  const today = new Date().toISOString().split('T')[0];
-  await syncUserData({ userId, date: today });
-}
-
 export default {
   getConnectionStatus,
   getUserRepositories,
   connectRepository,
   disconnectRepository,
-  syncUserData,
+  fetchGitHubActivity,
   getDailyActivity,
   getRecentActivities,
   validateAndRefreshToken,
@@ -414,5 +456,4 @@ export default {
   disconnectGitHub,
   getUsersWithRepository,
   getGitHubToken,
-  syncRepositoryData,
 };

@@ -52,11 +52,11 @@ github.post(
 );
 
 github.post(
-  "/sync",
+  "/fetch-activity",
   requireAuth,
   apiRateLimit,
-  validateRequest({ body: githubValidators.syncBody }),
-  (c) => githubController.syncData(c)
+  validateRequest({ body: githubValidators.fetchActivityBody }),
+  (c) => githubController.fetchActivity(c)
 );
 
 github.get(
@@ -93,27 +93,6 @@ github.post(
 
 github.delete("/disconnect", requireAuth, apiRateLimit, (c) =>
   githubController.disconnectGitHub(c)
-);
-
-// Webhook routes
-import webhookController from "../controllers/webhook.controller";
-
-github.post("/webhook", (c) => webhookController.handleWebhook(c));
-
-github.post(
-  "/repositories/:owner/:repo/webhook",
-  requireAuth,
-  apiRateLimit,
-  validateRequest({ params: githubValidators.repositoryConnect }),
-  (c) => webhookController.setupWebhook(c)
-);
-
-github.delete(
-  "/repositories/:owner/:repo/webhook", 
-  requireAuth,
-  apiRateLimit,
-  validateRequest({ params: githubValidators.repositoryConnect }),
-  (c) => webhookController.removeWebhook(c)
 );
 
 export { github };
