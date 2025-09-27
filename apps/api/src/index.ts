@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { auth, AuthType } from "./auth";
 import { authMiddleware, requireAuth } from "./middleware/auth";
+import { github } from "./routes/github";
 
 const app = new Hono<{
   Variables: AuthType;
@@ -62,6 +63,9 @@ app.get("/api/session", async (c) => {
   const session = c.get("session");
   return c.json({ user, session });
 });
+
+// GitHub API routes
+app.route("/api/github", github);
 
 // Catch-all 404 handler
 app.all("*", (c) => {

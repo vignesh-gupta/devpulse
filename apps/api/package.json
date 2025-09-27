@@ -7,9 +7,11 @@
   },
   "dependencies": {
     "@devpulse/db": "workspace:*",
+    "@devpulse/github": "workspace:*",
     "@hono/node-server": "^1.19.3",
     "better-auth": "^1.3.13",
     "dotenv": "^17.2.2",
+    "drizzle-orm": "^0.44.5",
     "hono": "^4.9.8",
     "pg": "^8.16.3"
   },

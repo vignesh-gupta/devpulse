@@ -1,0 +1,39 @@
+{
+  "name": "@devpulse/github",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@octokit/auth-oauth-app": "^7.1.0",
+    "@octokit/rest": "^20.1.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@devpulse/eslint-config": "workspace:*",
+    "@devpulse/typescript-config": "workspace:*",
+    "@types/node": "^20.10.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./src/client.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
+    }
+  }
+}
