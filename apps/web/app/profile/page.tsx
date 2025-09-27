@@ -1,4 +1,6 @@
-import { requireServerAuth } from "../../lib/auth-server";
+"use client";
+
+import { authClient } from "@/lib/auth-client";
 import {
   Card,
   CardContent,
@@ -7,9 +9,20 @@ import {
   CardTitle,
 } from "@devpulse/ui/components/card";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-export default async function ProfilePage() {
-  const { user, session } = await requireServerAuth();
+export default function ProfilePage() {
+  const { data: sessionData } = authClient.useSession();
+
+  console.log({
+    sessionData,
+  });
+
+  if (!sessionData || !sessionData.user) {
+    redirect("/login");
+  }
+
+  const { user, session } = sessionData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">

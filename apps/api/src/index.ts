@@ -56,8 +56,8 @@ app.get("/api/me", requireAuth, async (c) => {
   return c.json({ user });
 });
 
-// Session validation endpoint
-app.get("/api/auth/get-session", async (c) => {
+// Session validation endpoint (moved to avoid conflict with Better-Auth routes)
+app.get("/api/session", async (c) => {
   const user = c.get("user");
   const session = c.get("session");
   return c.json({ user, session });

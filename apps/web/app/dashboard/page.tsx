@@ -63,7 +63,7 @@ export default function DashboardPage() {
               />
               <button
                 onClick={() => {
-                  /* Sign out functionality */
+                  authClient.signOut();
                 }}
                 className="text-sm text-gray-600 hover:text-gray-900"
               >

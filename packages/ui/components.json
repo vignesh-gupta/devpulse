@@ -16,5 +16,9 @@
     "hooks": "@devpulse/ui/hooks",
     "lib": "@devpulse/ui/lib",
     "ui": "@devpulse/ui/components"
+  },
+  "registries": {
+    "@react-bits": "https://reactbits.dev/r/{name}.json",
+    "@shadcnblocks": "https://www.shadcnblocks.com/r/{name}.json"
   }
 }

@@ -1,19 +1,19 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { authClient } from "./auth-client";
 
-// Server-side auth helper for Next.js using Better-Auth
+// Server-side auth helper for Next.js with separate Hono API
 export async function getServerSession() {
   try {
-    // Get the session using Better-Auth's server-side method
-    const { data, error } = await authClient.getSession();
+    // Make request to your Hono API to validate session
+    const response = await authClient.getSession();
 
-    if (error) {
-      console.error("Server session error:", error);
+    console.log("Server session response:", response);
+
+    if (!response || response.error || !response.data) {
       return null;
     }
 
-    return data;
+    return response.data;
   } catch (error) {
     console.error("Server session error:", error);
     return null;

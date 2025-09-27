@@ -22,6 +22,9 @@ export function Navigation({ className = '' }: NavigationProps) {
 
   const handleSignOut = async () => {
     try {
+
+      console.log('Signing out...');
+      
       await authClient.signOut();
       router.push('/');
     } catch (error) {
