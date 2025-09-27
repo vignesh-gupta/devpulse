@@ -378,6 +378,29 @@ export async function disconnectGitHub(userId: string): Promise<void> {
   }
 }
 
+/**
+ * Get users who have a specific repository connected
+ */
+export async function getUsersWithRepository(githubRepoId: number): Promise<string[]> {
+  const repositories = await githubRepository.findRepositoriesByGitHubId(githubRepoId);
+  return repositories.map(repo => repo.userId);
+}
+
+/**
+ * Get GitHub token for a user
+ */
+export async function getGitHubToken(userId: string): Promise<GithubToken | null> {
+  return await githubRepository.findTokenByUserId(userId);
+}
+
+/**
+ * Sync data for a specific repository
+ */
+export async function syncRepositoryData(userId: string, repoFullName: string): Promise<void> {
+  const today = new Date().toISOString().split('T')[0];
+  await syncUserData({ userId, date: today });
+}
+
 export default {
   getConnectionStatus,
   getUserRepositories,
@@ -389,4 +412,7 @@ export default {
   validateAndRefreshToken,
   storeToken,
   disconnectGitHub,
+  getUsersWithRepository,
+  getGitHubToken,
+  syncRepositoryData,
 };

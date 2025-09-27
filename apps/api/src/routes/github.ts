@@ -79,6 +79,10 @@ github.post("/token/validate", requireAuth, apiRateLimit, (c) =>
   githubController.validateToken(c)
 );
 
+github.post("/token/refresh", requireAuth, apiRateLimit, (c) =>
+  githubController.refreshToken(c)
+);
+
 github.post(
   "/token",
   requireAuth,
@@ -89,6 +93,27 @@ github.post(
 
 github.delete("/disconnect", requireAuth, apiRateLimit, (c) =>
   githubController.disconnectGitHub(c)
+);
+
+// Webhook routes
+import webhookController from "../controllers/webhook.controller";
+
+github.post("/webhook", (c) => webhookController.handleWebhook(c));
+
+github.post(
+  "/repositories/:owner/:repo/webhook",
+  requireAuth,
+  apiRateLimit,
+  validateRequest({ params: githubValidators.repositoryConnect }),
+  (c) => webhookController.setupWebhook(c)
+);
+
+github.delete(
+  "/repositories/:owner/:repo/webhook", 
+  requireAuth,
+  apiRateLimit,
+  validateRequest({ params: githubValidators.repositoryConnect }),
+  (c) => webhookController.removeWebhook(c)
 );
 
 export { github };

@@ -336,6 +336,44 @@ export async function disconnectGitHub(c: Context<{ Variables: AuthType }>) {
   }
 }
 
+/**
+ * Refresh GitHub token
+ * POST /api/github/token/refresh
+ */
+export async function refreshToken(c: Context<{ Variables: AuthType }>) {
+  try {
+    const user = c.get("user");
+
+    if (!user?.id) {
+      return c.json({ error: "User not found" }, 400);
+    }
+
+    const refreshedToken = await services.validateAndRefreshToken(user.id);
+
+    if (!refreshedToken) {
+      return c.json({ error: "Failed to refresh token" }, 500);
+    }
+
+    return c.json({
+      message: "Token refreshed successfully",
+      token: {
+        accessToken: refreshedToken.accessToken,
+        expiresAt: refreshedToken.expiresAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "GitHub not connected") {
+        return c.json({ error: error.message }, 400);
+      }
+    }
+
+    return c.json({ error: "Failed to refresh token" }, 500);
+  }
+}
+
 export default {
   getStatus,
   getRepositories,
@@ -345,6 +383,7 @@ export default {
   getDailyActivity,
   getRecentActivities,
   validateToken,
+  refreshToken,
   storeToken,
   disconnectGitHub,
 };

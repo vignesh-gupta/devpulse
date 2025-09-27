@@ -115,6 +115,18 @@ export async function findRepositoryByGitHubId(userId: string, githubRepoId: num
   return repos[0] || null;
 }
 
+/**
+ * Find all repositories with a specific GitHub repository ID (across all users)
+ */
+export async function findRepositoriesByGitHubId(githubRepoId: number): Promise<Repository[]> {
+  const repos = await db
+    .select()
+    .from(repositories)
+    .where(eq(repositories.githubRepoId, githubRepoId));
+  
+  return repos;
+}
+
 export async function createRepository(data: CreateRepositoryData): Promise<Repository> {
   const [repository] = await db
     .insert(repositories)
