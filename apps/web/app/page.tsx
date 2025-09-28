@@ -30,7 +30,7 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container mx-auto flex h-16 items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -51,7 +51,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative py-20 md:py-32">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="mx-auto max-w-4xl text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -106,7 +106,7 @@ export default function Home() {
 
       {/* Stats Section */}
       <section className="py-16 border-t">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -154,7 +154,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section ref={featuresRef} className="py-20">
-        <div className="container">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={featuresInView ? { opacity: 1, y: 0 } : {}}
@@ -223,7 +223,7 @@ export default function Home() {
 
       {/* How It Works */}
       <section className="py-20 bg-muted/50">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="mx-auto max-w-2xl text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               How DevPulse Works
@@ -284,7 +284,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20">
-        <div className="container">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -312,7 +312,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t py-12">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="text-2xl font-bold">DevPulse</div>
             <div className="text-sm text-muted-foreground">

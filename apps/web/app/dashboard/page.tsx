@@ -1,18 +1,17 @@
 "use client";
 
-import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 import { redirect, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function DashboardPage() {
-  const { data: session, status, isPending } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
 
   // Check if onboarding is complete
   useEffect(() => {
-    if (status === "authenticated" && !isPending) {
+    if (!isPending) {
       const onboardingComplete = localStorage.getItem(
         "devpulse-onboarding-complete"
       );
@@ -20,7 +19,7 @@ export default function DashboardPage() {
         router.push("/onboarding");
       }
     }
-  }, [status, isPending, router]);
+  }, [isPending, router]);
 
   if (isPending) {
     return (
